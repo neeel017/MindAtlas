@@ -1,0 +1,14 @@
+{
+    "name": "neel/mind_atlas",
+    "description": "Part 2 - PHP",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "files": ["helpers.php"]
+    },
+    "require": {
+        "vlucas/phpdotenv": "^5.5",
+        "fzaninotto/faker": "^1.5"
+    }
+}
