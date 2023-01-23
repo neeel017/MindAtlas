@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use PDO;
+
 /**
  * Enrolment model
  */
@@ -38,20 +40,25 @@ class Enrolment extends Model
         $start = 0;
         $search = '';
 
+        $searchParams = [];
+
         $query = "Select firstname, surname, description, name as status from enrolments
         inner join users on users.id = enrolments.user_id
         inner join courses on courses.id = enrolments.course_id
         inner join statuses on statuses.id = enrolments.status_id";
         if (!empty($_GET["search"])) {
             $search = $_GET['search'];
-            $query .= " where firstname like '%{$search}%'
-            or surname like '%{$search}%'
-            or description like '%{$search}%'
-            or name like '%{$search}%'";
+            $query .= " where firstname like :search
+            or surname like :search
+            or description like :search
+            or name like :search";
+
+            $searchParams = [':search' => "%$search%"];
         }
 
         $statement = $this->db->prepare("{$query}");
-        $statement->execute();
+
+        $statement->execute($searchParams);
         $count = $statement->rowCount();
 
 
@@ -63,8 +70,14 @@ class Enrolment extends Model
 
 
 
-        $statement = $this->db->prepare("{$query} limit {$start},{$perPage}");
+        $statement = $this->db->prepare("{$query} limit :start,:per_page");
+        if (count($searchParams)) {
+            $statement->bindParam(":search", $searchParams[":search"]);
+        }
+        $statement->bindParam('start', $start, PDO::PARAM_INT);
+        $statement->bindParam('per_page', $perPage, PDO::PARAM_INT);
         $statement->execute();
+
         $result = $statement->fetchAll();
         return ['count' => $count, 'results' => $result, 'current_page' => $page, 'per_page' => $perPage, 'search' => $search];
     }
